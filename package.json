@@ -1,0 +1,44 @@
+{
+  "name": "docker-run-kill",
+  "version": "1.0.0",
+  "description": "CLI wrapping `docker run` to kill container when CLI is terminated",
+  "keywords": [
+    "docker",
+    "run",
+    "kill",
+    "start",
+    "stop",
+    "container"
+  ],
+  "files": [
+    "bin.js",
+    "cli.js",
+    "lib"
+  ],
+  "bin": {
+    "docker-run-kill": "bin.js"
+  },
+  "scripts": {
+    "lint": "eslint \"**/*.js\"",
+    "lint-fix": "yarn lint --fix",
+    "test": "yarn lint"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^7.8.1",
+    "eslint-config-tsdx": "^0.2.0"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Matthew Francis Brunetti",
+    "email": "zenflow87@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zenflow/docker-run-kill.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zenflow/docker-run-kill/issues"
+  },
+  "homepage": "https://github.com/zenflow/docker-run-kill#readme"
+}
