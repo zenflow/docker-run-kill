@@ -1,7 +1,7 @@
 {
   "name": "docker-run-kill",
   "version": "1.0.0",
-  "description": "CLI wrapping `docker run` to kill container when process is terminated",
+  "description": "CLI wrapping `docker run` to kill container when terminated",
   "keywords": [
     "docker",
     "run",
@@ -24,7 +24,7 @@
     "lint-fix": "yarn lint --fix",
     "test-only": "jest --runInBand",
     "test": "yarn lint && yarn test-only",
-    "demo": "node bin.js --rm node:10.22.0-alpine3.9 -e \"console.log('hello');process.on('SIGTERM',()=>{console.log('goodbye');process.exit();});setInterval(()=>{},1000)\""
+    "demo": "node bin.js --signal SIGINT --rm node:10.22.0-alpine3.9 -e \"console.log('hello');process.on('SIGINT',()=>{console.log('goodbye');process.exit();});setInterval(()=>{},1000)\""
   },
   "dependencies": {},
   "devDependencies": {

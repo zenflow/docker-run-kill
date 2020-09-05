@@ -12,24 +12,34 @@ const { helpText } = require("../lib/helpText");
 const { getChildProcessHelpers } = require("./util/getChildProcessHelpers");
 
 const isWindows = process.platform === "win32";
+const containerName = "docker-run-kill-test";
+const helloGoodbyeScript =
+  "console.log('hello');" +
+  "['SIGINT','SIGTERM'].forEach(signal=>{" +
+  "process.on(signal,()=>{" +
+  "console.log('goodbye',signal);" +
+  "process.exit();" +
+  "});" +
+  "});" +
+  "setInterval(()=>{},1000)";
 
 describe("cli", () => {
+  jest.setTimeout(10000);
+
   it("skips killing container when container exits by itself", async () => {
     // TODO: Why does this test take so long, especially in Github Actions?
-    jest.setTimeout(10000);
-    const script = "console.log('hello')";
     const cp = spawnBin([
       "--name",
-      "hello",
+      containerName,
       "--rm",
       dockerNodeImage,
       "-e",
-      script
+      "console.log('hello')"
     ]);
     const cph = getChildProcessHelpers(cp);
     await cph.outputEnded;
     expect(cph.readOutput()).toStrictEqual([
-      `> docker run --name hello --rm ${dockerNodeImage} -e ${script}`,
+      `> docker run --name ${containerName} --rm ${dockerNodeImage} -e console.log('hello')`,
       "hello",
       "",
       ""
@@ -37,76 +47,102 @@ describe("cli", () => {
     await cph.childExited;
     expect(cp.exitCode).toBe(0);
   });
+
   for (const [signal, exitCode] of [
     ["SIGINT", 130],
     ["SIGTERM", 143]
   ]) {
     it(`kills container on ${signal}`, async () => {
-      const script = "console.log('hello');setInterval(()=>{},1000)";
       const cp = spawnBin([
         "--name",
-        "hello-wait",
+        containerName,
         "--rm",
         dockerNodeImage,
         "-e",
-        script
+        helloGoodbyeScript
       ]);
       const cph = getChildProcessHelpers(cp);
       await cph.when(line => line === "hello");
       expect(cph.readOutput()).toStrictEqual([
-        `> docker run --name hello-wait --rm ${dockerNodeImage} -e ${script}`,
+        `> docker run --name ${containerName} --rm ${dockerNodeImage} -e ${helloGoodbyeScript}`,
         "hello"
       ]);
       cp.kill(signal);
       await cph.outputEnded;
-      if (isWindows) {
-        expect(cph.readOutput()).toStrictEqual(["", ""]);
-        spawnSync("docker", ["kill", "hello-wait"]);
-      } else {
-        expect(cph.readOutput()).toStrictEqual([
-          "Killed container hello-wait",
-          "",
-          ""
-        ]);
+      if (expectWindowsEarlyExit(cph)) {
+        return;
       }
+      expect(cph.readOutput()).toStrictEqual([
+        `Killed container ${containerName}`,
+        "",
+        ""
+      ]);
       await cph.childExited;
-      expect(cp.exitCode).toBe(isWindows ? null : exitCode);
+      expect(cp.exitCode).toBe(exitCode);
     });
   }
+
   it("kills container with given --signal", async () => {
-    const script =
-      "console.log('hello');process.on('SIGTERM',()=>{console.log('goodbye');process.exit();});setInterval(()=>{},1000)";
     const cp = spawnBin([
       "--name",
-      "hello-wait-goodbye",
+      containerName,
       "--signal",
-      "SIGTERM",
+      "SIGINT",
       "--rm",
       dockerNodeImage,
       "-e",
-      script
+      helloGoodbyeScript
     ]);
     const cph = getChildProcessHelpers(cp);
     await cph.when(line => line === "hello");
     expect(cph.readOutput()).toStrictEqual([
-      `> docker run --name hello-wait-goodbye --rm ${dockerNodeImage} -e ${script}`,
+      `> docker run --name ${containerName} --rm ${dockerNodeImage} -e ${helloGoodbyeScript}`,
       "hello"
     ]);
-    cp.kill();
+    cp.kill("SIGTERM");
     await cph.outputEnded;
-    if (isWindows) {
-      expect(cph.readOutput()).toStrictEqual(["", ""]);
-      spawnSync("docker", ["kill", "hello-wait-goodbye"]);
-    } else {
-      expect(cph.readOutput()).toStrictEqual([
-        "goodbye",
-        "Killed container hello-wait-goodbye",
-        "",
-        ""
-      ]);
+    if (expectWindowsEarlyExit(cph)) {
+      return;
     }
-    await cph.childExited;
+    expect(cph.readOutput()).toStrictEqual([
+      "goodbye SIGINT", // signal indicated with --signal
+      `Killed container ${containerName}`,
+      "",
+      ""
+    ]);
   });
+
+  it("reports error killing container", async () => {
+    const cp = spawnBin([
+      "--name",
+      containerName,
+      "--signal",
+      "INVALID_SIGNAL",
+      "--rm",
+      dockerNodeImage,
+      "-e",
+      helloGoodbyeScript
+    ]);
+    const cph = getChildProcessHelpers(cp);
+    await cph.when(line => line === "hello");
+    expect(cph.readOutput()).toStrictEqual([
+      `> docker run --name ${containerName} --rm ${dockerNodeImage} -e ${helloGoodbyeScript}`,
+      "hello"
+    ]);
+    cp.kill("SIGTERM");
+    await cph.outputEnded;
+    if (expectWindowsEarlyExit(cph)) {
+      return;
+    }
+    expect(cph.readOutput()).toStrictEqual([
+      `Command failed: docker kill --signal INVALID_SIGNAL ${containerName}`,
+      "Error response from daemon: Invalid signal: INVALID_SIGNAL",
+      "goodbye SIGTERM", // signal which child process was killed with
+      "",
+      ""
+    ]);
+  });
+
   it("can print help text", async () => {
     const { stdout, stderr, status } = spawnBinSync(["--help"]);
     expect(stdout.toString("utf8")).toBe(`${helpText}\n`);
@@ -121,4 +157,11 @@ function spawnBin(args) {
 
 function spawnBinSync(args) {
   return spawnSync(process.execPath, [join(__dirname, "../bin.js"), ...args]);
+}
+
+function expectWindowsEarlyExit(cph) {
+  if (!isWindows) return false;
+  expect(cph.readOutput()).toStrictEqual(["", ""]);
+  spawnSync("docker", ["kill", containerName]); // clean up
+  return true;
 }
