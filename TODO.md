@@ -1,6 +1,5 @@
 # TODO
 
-- run tests in Github Actions (linux)
 - set up semantic release
 - README
   - Intro section (explain purpose)
