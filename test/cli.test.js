@@ -2,9 +2,11 @@ const { spawn, spawnSync } = require("child_process");
 const { join } = require("path");
 const { getChildProcessHelpers } = require("./util/getChildProcessHelpers");
 
+const dockerNodeImage = "node:10.22.0-alpine3.9";
+
 describe("cli", () => {
   it("child exit (don't kill container)", async () => {
-    const runArgs = ["--rm", "node:alpine", "-e", "console.log('hello')"];
+    const runArgs = ["--rm", dockerNodeImage, "-e", "console.log('hello')"];
     const cp = spawnBin(["--name", "hello", ...runArgs]);
     const cph = getChildProcessHelpers(cp);
     await cph.outputEnded;
@@ -20,12 +22,9 @@ describe("cli", () => {
   });
   it("signal exit (kill container)", async () => {
     const killArgs = ["--signal", "SIGTERM"];
-    const runArgs = [
-      "--rm",
-      "node:alpine",
-      "-e",
-      "console.log('hello');process.on('SIGTERM',()=>{console.log('goodbye');process.exit();});setInterval(()=>{},1000)"
-    ];
+    const script =
+      "console.log('hello');process.on('SIGTERM',()=>{console.log('goodbye');process.exit();});setInterval(()=>{},1000)";
+    const runArgs = ["--rm", dockerNodeImage, "-e", script];
     const cp = spawnBin(["--name", "hello-goodbye", ...killArgs, ...runArgs]);
     const cph = getChildProcessHelpers(cp);
     await cph.when(line => line === "hello");

@@ -1,7 +1,5 @@
 # TODO
 
-- change docker image for tests+demo ("node:alpine") to a specific version,
-which is pulled (i.e. `docker pull ...`) in package "postinstall"
 - run tests in Github Actions (linux)
 - set up semantic release
 - README

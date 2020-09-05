@@ -19,11 +19,12 @@
     "docker-run-kill": "bin.js"
   },
   "scripts": {
+    "postinstall": "docker pull node:10.22.0-alpine3.9",
     "lint": "eslint \"**/*.js\"",
     "lint-fix": "yarn lint --fix",
     "test-only": "jest --runInBand",
     "test": "yarn lint && yarn test-only",
-    "demo": "node bin.js --rm node:alpine -e \"console.log('hello'); setInterval(() => {}, 1000)\""
+    "demo": "node bin.js --rm node:10.22.0-alpine3.9 -e \"console.log('hello');process.on('SIGTERM',()=>{console.log('goodbye');process.exit();});setInterval(()=>{},1000)\""
   },
   "dependencies": {},
   "devDependencies": {
