@@ -1,7 +1,7 @@
 {
   "name": "docker-run-kill",
   "version": "1.0.0",
-  "description": "CLI wrapping `docker run` to kill container when terminated",
+  "description": "CLI wrapping `docker run` to kill container when CLI is terminated",
   "keywords": [
     "docker",
     "run",
