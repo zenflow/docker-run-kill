@@ -73,7 +73,7 @@ describe("cli", () => {
         return;
       }
       expect(cph.readOutput()).toStrictEqual([
-        `Killed container ${containerName}`,
+        `Killed container ${containerName} with signal SIGKILL (default)`,
         "",
         ""
       ]);
@@ -106,7 +106,7 @@ describe("cli", () => {
     }
     expect(cph.readOutput()).toStrictEqual([
       "goodbye SIGINT", // signal indicated with --signal
-      `Killed container ${containerName}`,
+      `Killed container ${containerName} with signal SIGINT`,
       "",
       ""
     ]);
