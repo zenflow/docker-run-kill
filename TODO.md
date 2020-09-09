@@ -1,6 +1,5 @@
 # TODO
 
-- simplify parseArgs
 - set up semantic release
 - README
   - Intro section (explain purpose)
