@@ -19,11 +19,11 @@
     "docker-run-kill": "bin.js"
   },
   "scripts": {
-    "postinstall": "docker pull node:10.22.0-alpine3.9",
     "lint": "eslint \"**/*.js\"",
     "lint-fix": "yarn lint --fix",
+    "pull-test-image": "docker pull node:10.22.0-alpine3.9",
     "test-only": "jest --runInBand",
-    "test": "yarn lint && yarn test-only",
+    "test": "yarn lint && yarn pull-test-image && yarn test-only",
     "demo": "node demo.js"
   },
   "dependencies": {},
