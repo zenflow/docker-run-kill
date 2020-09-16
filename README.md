@@ -7,9 +7,11 @@ CLI wrapping `docker run` to kill container when CLI is terminated
 [![CI status](https://img.shields.io/github/workflow/status/zenflow/docker-run-kill/CI?logo=GitHub&label=CI)](https://github.com/zenflow/docker-run-kill/actions?query=branch%3Amaster)
 [![dependencies status](https://img.shields.io/david/zenflow/docker-run-kill)](https://david-dm.org/zenflow/docker-run-kill)
 [![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability-percentage/zenflow/docker-run-kill?logo=Code%20Climate)](https://codeclimate.com/github/zenflow/docker-run-kill)
-[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+[![LGTM alerts](https://img.shields.io/lgtm/alerts/github/zenflow/docker-run-kill?logo=lgtm)](https://lgtm.com/projects/g/zenflow/docker-run-kill/)
+[![Known Vulnerabilities](https://snyk.io/test/github/zenflow/docker-run-kill/badge.svg?targetFile=package.json)](https://snyk.io/test/github/zenflow/docker-run-kill?targetFile=package.json)
 [![GitHub issues welcome](https://img.shields.io/badge/issues-welcome-brightgreen.svg?logo=GitHub)](https://github.com/zenflow/docker-run-kill/issues)
 [![GitHub pull requests welcome](https://img.shields.io/badge/pull%20requests-welcome-brightgreen.svg?logo=GitHub)](https://github.com/zenflow/docker-run-kill/pulls)
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 
 ## What is it?
 
