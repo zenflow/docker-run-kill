@@ -24,7 +24,7 @@
     "lint-fix": "yarn lint --fix",
     "test-only": "jest --runInBand",
     "test": "yarn lint && yarn test-only",
-    "demo": "node bin.js --signal SIGINT --rm node:10.22.0-alpine3.9 -e \"console.log('hello');process.on('SIGINT',()=>{console.log('goodbye');process.exit();});setInterval(()=>{},1000)\""
+    "demo": "node demo.js"
   },
   "dependencies": {},
   "devDependencies": {
