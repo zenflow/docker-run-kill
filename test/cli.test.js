@@ -1,15 +1,10 @@
-/*
-  Note: On Windows, for whatever reason, calling `cp.kill("SIGINT")`
-  does not result in the child's SIGINT handler being called,
-  but instead the immediate termination of the child.
- */
-
 const dockerNodeImage = "node:10.22.0-alpine3.9";
 
 const { spawn, spawnSync } = require("child_process");
 const { join } = require("path");
+const { once } = require("events");
+const { StreamLineReader } = require("stream-line-reader");
 const { helpText } = require("../lib/helpText");
-const { getChildProcessHelpers } = require("./util/getChildProcessHelpers");
 
 const isWindows = process.platform === "win32";
 const containerName = "docker-run-kill-test";
@@ -36,15 +31,14 @@ describe("cli", () => {
       "-e",
       "console.log('hello')"
     ]);
-    const cph = getChildProcessHelpers(cp);
-    await cph.outputEnded;
-    expect(cph.readOutput()).toStrictEqual([
+    const lines = new StreamLineReader([cp.stdout, cp.stderr]);
+    expect(await lines.readRemaining()).toStrictEqual([
       `> docker run --name ${containerName} --rm ${dockerNodeImage} -e console.log('hello')`,
       "hello",
       "",
       ""
     ]);
-    await cph.childExited;
+    await once(cp, "exit");
     expect(cp.exitCode).toBe(0);
   });
 
@@ -61,23 +55,22 @@ describe("cli", () => {
         "-e",
         helloGoodbyeScript
       ]);
-      const cph = getChildProcessHelpers(cp);
-      await cph.when(line => line === "hello");
-      expect(cph.readOutput()).toStrictEqual([
+      const lines = new StreamLineReader([cp.stdout, cp.stderr]);
+      expect(await lines.readUntil(line => line === "hello")).toStrictEqual([
         `> docker run --name ${containerName} --rm ${dockerNodeImage} -e ${helloGoodbyeScript}`,
         "hello"
       ]);
       cp.kill(signal);
-      await cph.outputEnded;
-      if (expectWindowsEarlyExit(cph)) {
+      if (isWindows) {
+        await expectWindowsEarlyExit(lines);
         return;
       }
-      expect(cph.readOutput()).toStrictEqual([
+      expect(await lines.readRemaining()).toStrictEqual([
         `Sent SIGKILL to ${containerName}`,
         "",
         ""
       ]);
-      await cph.childExited;
+      await once(cp, "exit");
       expect(cp.exitCode).toBe(exitCode);
     });
   }
@@ -93,18 +86,17 @@ describe("cli", () => {
       "-e",
       helloGoodbyeScript
     ]);
-    const cph = getChildProcessHelpers(cp);
-    await cph.when(line => line === "hello");
-    expect(cph.readOutput()).toStrictEqual([
+    const lines = new StreamLineReader([cp.stdout, cp.stderr]);
+    expect(await lines.readUntil(line => line === "hello")).toStrictEqual([
       `> docker run --name ${containerName} --rm ${dockerNodeImage} -e ${helloGoodbyeScript}`,
       "hello"
     ]);
     cp.kill("SIGTERM");
-    await cph.outputEnded;
-    if (expectWindowsEarlyExit(cph)) {
+    if (isWindows) {
+      await expectWindowsEarlyExit(lines);
       return;
     }
-    expect(cph.readOutput()).toStrictEqual([
+    expect(await lines.readRemaining()).toStrictEqual([
       "goodbye SIGINT", // signal indicated with --signal
       `Sent SIGINT to ${containerName}`,
       "",
@@ -123,18 +115,17 @@ describe("cli", () => {
       "-e",
       helloGoodbyeScript
     ]);
-    const cph = getChildProcessHelpers(cp);
-    await cph.when(line => line === "hello");
-    expect(cph.readOutput()).toStrictEqual([
+    const lines = new StreamLineReader([cp.stdout, cp.stderr]);
+    expect(await lines.readUntil(line => line === "hello")).toStrictEqual([
       `> docker run --name ${containerName} --rm ${dockerNodeImage} -e ${helloGoodbyeScript}`,
       "hello"
     ]);
     cp.kill("SIGTERM");
-    await cph.outputEnded;
-    if (expectWindowsEarlyExit(cph)) {
+    if (isWindows) {
+      await expectWindowsEarlyExit(lines);
       return;
     }
-    expect(cph.readOutput()).toStrictEqual([
+    expect(await lines.readRemaining()).toStrictEqual([
       `Command failed: docker kill --signal INVALID_SIGNAL ${containerName}`,
       "Error response from daemon: Invalid signal: INVALID_SIGNAL",
       "goodbye SIGTERM", // signal which child process was killed with
@@ -159,9 +150,7 @@ function spawnBinSync(args) {
   return spawnSync(process.execPath, [join(__dirname, "../bin.js"), ...args]);
 }
 
-function expectWindowsEarlyExit(cph) {
-  if (!isWindows) return false;
-  expect(cph.readOutput()).toStrictEqual(["", ""]);
+async function expectWindowsEarlyExit(lines) {
+  expect(await lines.readRemaining()).toStrictEqual(["", ""]);
   spawnSync("docker", ["kill", containerName]); // clean up
-  return true;
 }

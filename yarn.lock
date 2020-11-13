@@ -4068,6 +4068,14 @@ stealthy-require@^1.1.1:
   resolved "https://registry.yarnpkg.com/stealthy-require/-/stealthy-require-1.1.1.tgz#35b09875b4ff49f26a777e509b3090a3226bf24b"
   integrity sha1-NbCYdbT/SfJqd35QmzCQoyJr8ks=
 
+stream-line-reader@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/stream-line-reader/-/stream-line-reader-1.0.0.tgz#15969bc4ad4de32d6f81351f74848c26ef806290"
+  integrity sha512-ORnd+d1EYo8dZE/pvkQDWcqafVWDenhUd6QfsLRvos2S4yqf35XSZGwjL3U9GFNcv37+Lq8vN3aSC4xgjay4EA==
+  dependencies:
+    merge-stream "^2.0.0"
+    split "^1.0.1"
+
 string-length@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/string-length/-/string-length-4.0.1.tgz#4a973bf31ef77c4edbceadd6af2611996985f8a1"
